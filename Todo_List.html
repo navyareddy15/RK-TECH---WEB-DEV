@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>MY TO-DO LIST</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&family=Lobster&display=swap">
+    <style>
+        body {
+            margin: auto;
+            font-family: 'Open Sans', sans-serif;
+            overflow: auto;
+            background: linear-gradient(315deg, #c95ccc 3%, #35c6ee 38%, #9b49f9 68%, #f38787 98%);
+            animation: gradient 15s ease infinite;
+            background-size: 400% 400%;
+            background-attachment: fixed;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 0%;
+            }
+
+            50% {
+                background-position: 100% 100%;
+            }
+
+            100% {
+                background-position: 0% 0%;
+            }
+        }
+
+        @keyframes wave {
+            0%, 100% {
+                transform: translateX(1);
+            }
+
+            25%, 75% {
+                transform: translateX(-25%);
+            }
+
+            50% {
+                transform: translateX(-50%);
+            }
+        }
+
+        #app {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #39011d;
+            text-align: center;
+            font-family: 'Lobster', cursive;
+        }
+
+        h2 {
+            color: #300132;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        #taskForm {
+            display: flex;
+            gap: 10px;
+        }
+
+        #taskInput {
+            flex: 1;
+        }
+
+        button {
+            background-color: #99d3f5;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #d870a6;
+        }
+
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+            width: 100%;
+            background-color: #f8f2f2;
+            box-shadow: 0 2px 4px rgba(223, 222, 222, 0.1);
+            margin: 8px 0;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: black;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+        }
+
+        .task-list-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .pending-list,
+        .completed-list {
+            flex: 1;
+        }
+
+        .editable {
+            border: none;
+            background-color: transparent;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .editable:focus {
+            outline: none;
+            border: 1px solid #f0e9e9;
+            border-radius: 4px;
+        }
+
+        .editable-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .floating-button {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: linear-gradient(45deg, #abcb95, #b7ea93);
+            border: none;
+            padding: 12px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .floating-button:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1>MY TO-DO LIST</h1>
+        <form id="taskForm">
+            <input type="text" id="taskInput" required placeholder="New Task">
+            <button type="button" onclick="addTask()">Add Task</button>
+        </form>
+
+        <div class="task-list-container">
+            <div class="pending-list">
+                <h2>Pending Tasks</h2>
+                <ul id="pendingTasks"></ul>
+            </div>
+
+            <div class="completed-list">
+                <h2>Completed Tasks</h2>
+                <ul id="completedTasks"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const taskText = taskInput.value.trim();
+            if (taskText !== '') {
+                const task = {
+                    text: taskText,
+                    addedAt: new Date(),
+                    completed: false,
+                };
+                tasks.push(task);
+                saveTasks();
+                renderTasks();
+                taskInput.value = '';
+            }
+        }
+
+        function toggleComplete(index) {
+            tasks[index].completed = !tasks[index].completed;
+            saveTasks();
+            renderTasks();
+        }
+
+        function editTask(index) {
+            const spanElement = document.getElementById(`taskText_${index}`);
+            spanElement.setAttribute('contenteditable', 'true');
+            spanElement.classList.add('editable');
+            spanElement.focus();
+
+            spanElement.addEventListener('blur', function () {
+                spanElement.setAttribute('contenteditable', 'false');
+                spanElement.classList.remove('editable');
+                tasks[index].text = spanElement.textContent;
+                saveTasks();
+                renderTasks();
+            });
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
+        }
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            const storedTasks = localStorage.getItem('tasks');
+            return storedTasks ? JSON.parse(storedTasks) : [];
+        }
+
+        function renderTasks() {
+            const pendingTasksList = document.getElementById('pendingTasks');
+            const completedTasksList = document.getElementById('completedTasks');
+            pendingTasksList.innerHTML = '';
+            completedTasksList.innerHTML = '';
+
+            tasks.forEach((task, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'task';
+                listItem.innerHTML = `
+                    <span id="taskText_${index}" class="${task.completed ? 'completed' : ''} editable">
+                        ${task.text}
+                    </span>
+                    <div class="editable-buttons">
+                        <button onclick="toggleComplete(${index})">✓</button>
+                        ${!task.completed ? `<button onclick="editTask(${index})">✎</button>` : ''}
+                        <button onclick="deleteTask(${index})">✖</button>
+                    </div>
+                `;
+                if (task.completed) {
+                    completedTasksList.appendChild(listItem);
+                } else {
+                    pendingTasksList.appendChild(listItem);
+                }
+            });
+        }
+
+        let tasks = loadTasks();
+        renderTasks();
+    </script>
+</body>
+
+</html>
